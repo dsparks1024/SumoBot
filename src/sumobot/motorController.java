@@ -41,10 +41,10 @@ public class motorController {
      * @param gpio 
      */
     public motorController(GpioController gpio){
-       input1 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_00, "input1", PinState.LOW);
-       input2 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_01, "input2", PinState.LOW);
-       input3 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_02, "input3", PinState.LOW);
-       input4 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_03, "input4", PinState.LOW);
+       input1 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04, "input1", PinState.LOW);
+       input2 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_17, "input2", PinState.LOW);
+       input3 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_23, "input3", PinState.LOW);
+       input4 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_24, "input4", PinState.LOW);
     }
     
     public void foward(){
