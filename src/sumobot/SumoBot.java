@@ -5,12 +5,16 @@
  */
 package sumobot;
 
+import com.pi4j.io.gpio.*;
 import com.pi4j.io.gpio.GpioController;
 import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.GpioPinDigitalInput;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinState;
 import com.pi4j.io.gpio.RaspiPin;
+import com.pi4j.io.gpio.trigger.GpioCallbackTrigger;
+import java.util.concurrent.Callable;
 
 
 
@@ -36,13 +40,21 @@ public class SumoBot {
         LineSensor sensor2 = new LineSensor("test",sensor2Pin,gpio);
         
         
-        sensor1.run();
-        sensor2.run();
-        
-        for(int i=0;i<10000000;i++){
-            
-        }
-        
+        //sensor1.run();
+        //sensor2.run();
+       
+        /* Testing the short range digital sensor 
+        ** The interupt to siginal a state change is regestered 
+        ** inside of the shortRangeSensor class. 
+        */
+       Pin shortSensor = RaspiPin.GPIO_29;
+       digitalSensor sortSensor = new digitalSensor(shortSensor,gpio);
+     
+       
+       while(true){
+           
+       }
+       
         /*
         motor.foward();
         Thread.sleep(3000);
@@ -57,6 +69,6 @@ public class SumoBot {
         motor.stop();
         */
         
-        gpio.shutdown();
+       // gpio.shutdown();
     }
 }
