@@ -8,16 +8,18 @@
 package sumobot;
 
 import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
+import com.pi4j.io.gpio.Pin;
 import com.pi4j.io.gpio.PinState;
-import com.pi4j.io.gpio.RaspiPin;
+
 /**
  *
  * @author Dominick Sparks
  */
-public class motorController {
+
+public class MotorController {
     
+    final GpioController gpio;
     final GpioPinDigitalOutput input1;
     final GpioPinDigitalOutput input2;
     final GpioPinDigitalOutput input3;
@@ -25,26 +27,18 @@ public class motorController {
                     
     /**@
      * @param gpio
-     * @param Input1
-     * @param Input2
-     * @param Input3
-     * @param Input4 
+     * @param in1 -> Left Motor Forward
+     * @param in2 -> Left Motor Reverse
+     * @param in3 -> Right Motor Forward
+     * @param in4 -> Right Motor Reverse
      */
-    /*
-    public motorController(GpioController gpio,RaspiPin Input1,RaspiPin Input2,RaspiPin Input3,RaspiPin Input4){
-        System.out.println("This constructor has not been implemented yet");
-    }
-    */
     
-    /**@
-     * 
-     * @param gpio 
-     */
-    public motorController(GpioController gpio){
-       input1 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_04, "input1", PinState.LOW);
-       input2 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_17, "input2", PinState.LOW);
-       input3 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_23, "input3", PinState.LOW);
-       input4 = gpio.provisionDigitalOutputPin(RaspiPin.GPIO_24, "input4", PinState.LOW);
+    public MotorController(GpioController gpio,Pin in1,Pin in2,Pin in3,Pin in4){
+       this.gpio = gpio;
+       this.input1 = this.gpio.provisionDigitalOutputPin(in1,PinState.LOW);
+       this.input2 = this.gpio.provisionDigitalOutputPin(in2,PinState.LOW);
+       this.input3 = this.gpio.provisionDigitalOutputPin(in3,PinState.LOW);
+       this.input4 = this.gpio.provisionDigitalOutputPin(in4,PinState.LOW);
     }
     
     public void foward(){

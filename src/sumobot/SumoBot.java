@@ -9,22 +9,11 @@ import com.pi4j.gpio.extension.ads.ADS1015GpioProvider;
 import com.pi4j.gpio.extension.ads.ADS1015Pin;
 import com.pi4j.gpio.extension.ads.ADS1x15GpioProvider;
 import com.pi4j.io.gpio.*;
-import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
-import com.pi4j.io.gpio.GpioPinDigitalInput;
-import com.pi4j.io.gpio.GpioPinDigitalOutput;
-import com.pi4j.io.gpio.Pin;
-import com.pi4j.io.gpio.PinState;
-import com.pi4j.io.gpio.RaspiPin;
 import com.pi4j.io.gpio.event.GpioPinAnalogValueChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerAnalog;
-import com.pi4j.io.gpio.trigger.GpioCallbackTrigger;
 import com.pi4j.io.i2c.I2CBus;
 import java.io.IOException;
 import java.text.DecimalFormat;
-import java.util.concurrent.Callable;
-
-
 
 /**
  *
@@ -37,16 +26,37 @@ public class SumoBot {
      * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException, IOException {
+        
         final GpioController gpio = GpioFactory.getInstance();
-       // motorController motor = new motorController(gpio);
+       
+        // Motor Controller
+       /* Pin input1 = RaspiPin.GPIO_00;
+        Pin input2 = RaspiPin.GPIO_01;
+        Pin input3 = RaspiPin.GPIO_02;
+        Pin input4 = RaspiPin.GPIO_03;
+        MotorController motor = new MotorController(gpio, input1, input2, input3, input4);
+        motor.foward();
+        Thread.sleep(3000);
+        motor.stop();
+        Thread.sleep(500);
+        motor.left();
+        Thread.sleep(500);
+        motor.right();
+        Thread.sleep(500);
+        motor.reverse();
+        Thread.sleep(3000);
+        motor.stop();
+        */
         
         
+        // Hardware thread testing... (not possible)
+        /*
         Pin sensor1Pin = RaspiPin.GPIO_01; 
         Pin sensor2Pin = RaspiPin.GPIO_04;
         
         LineSensor sensor1 = new LineSensor("test",sensor1Pin,gpio);
         LineSensor sensor2 = new LineSensor("test",sensor2Pin,gpio);
-        
+        */
         
         //sensor1.run();
         //sensor2.run();
@@ -55,9 +65,11 @@ public class SumoBot {
         ** The interupt to siginal a state change is regestered 
         ** inside of the shortRangeSensor class. 
         */
-        Pin shortRangeSensor = RaspiPin.GPIO_29;
+        //Pin shortRangeSensor = RaspiPin.GPIO_29;
         //digitalSensor sortSensor = new digitalSensor(shortRangeSensor,gpio);
      
+        
+        // Tesinting the A to D converter with the long range sensor
         final DecimalFormat df = new DecimalFormat("#.##");
         final DecimalFormat pdf = new DecimalFormat("###.#");
         
@@ -127,21 +139,7 @@ public class SumoBot {
        while(true){
            
        }
-       
-        /*
-        motor.foward();
-        Thread.sleep(3000);
-        motor.stop();
-        Thread.sleep(500);
-        motor.left();
-        Thread.sleep(500);
-        motor.right();
-        Thread.sleep(500);
-        motor.reverse();
-        Thread.sleep(3000);
-        motor.stop();
-        */
-        
+ 
        // gpio.shutdown();
     }
 }
