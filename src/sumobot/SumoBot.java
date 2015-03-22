@@ -10,16 +10,20 @@ import com.pi4j.gpio.extension.ads.ADS1015Pin;
 import com.pi4j.gpio.extension.ads.ADS1x15GpioProvider;
 import com.pi4j.io.gpio.*;
 import com.pi4j.io.gpio.event.GpioPinAnalogValueChangeEvent;
+import com.pi4j.io.gpio.event.GpioPinDigitalStateChangeEvent;
 import com.pi4j.io.gpio.event.GpioPinListenerAnalog;
+import com.pi4j.io.gpio.event.GpioPinListenerDigital;
 import com.pi4j.io.i2c.I2CBus;
 import java.io.IOException;
 import java.text.DecimalFormat;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  *
  * @author Dominick Sparks
  */
-public class SumoBot {
+public class SumoBot implements Observer{
 
     /**
      * @param args the command line arguments
@@ -28,7 +32,7 @@ public class SumoBot {
     public static void main(String[] args) throws InterruptedException, IOException {
         
         final GpioController gpio = GpioFactory.getInstance();
-       
+    
         // Motor Controller
        /* Pin input1 = RaspiPin.GPIO_00;
         Pin input2 = RaspiPin.GPIO_01;
@@ -62,30 +66,33 @@ public class SumoBot {
         //sensor2.run();
        
         /* Testing the short range digital sensor 
-        ** The interupt to siginal a state change is regestered 
-        ** inside of the shortRangeSensor class. 
+        **
         */
-        //Pin shortRangeSensor = RaspiPin.GPIO_29;
-        //digitalSensor sortSensor = new digitalSensor(shortRangeSensor,gpio);
-     
+        Pin shortRangeSensor = RaspiPin.GPIO_29;
+        digitalSensor shortSensor = new digitalSensor("shortRange","sensor1",shortRangeSensor,gpio);
         
+        Pin shortRangeSensor2 = RaspiPin.GPIO_28;
+        digitalSensor shortSensor2 = new digitalSensor("shortRange","sensor2",shortRangeSensor2,gpio);
+        
+        shortSensor.addObserver(new SumoBot());
+        shortSensor2.addObserver(new SumoBot());
         // Tesinting the A to D converter with the long range sensor
-        final DecimalFormat df = new DecimalFormat("#.##");
-        final DecimalFormat pdf = new DecimalFormat("###.#");
+        //final DecimalFormat df = new DecimalFormat("#.##");
+        //final DecimalFormat pdf = new DecimalFormat("###.#");
         
         // create gpio controller
         
         // create custom ADS1015 GPIO provider
-        final ADS1015GpioProvider gpioProvider = new ADS1015GpioProvider(I2CBus.BUS_1, ADS1015GpioProvider.ADS1015_ADDRESS_0x48);
+        //final ADS1015GpioProvider gpioProvider = new ADS1015GpioProvider(I2CBus.BUS_1, ADS1015GpioProvider.ADS1015_ADDRESS_0x48);
         
         // provision gpio analog input pins from ADS1015
-        GpioPinAnalogInput myInputs[] = {
+        /*GpioPinAnalogInput myInputs[] = {
                 gpio.provisionAnalogInputPin(gpioProvider, ADS1015Pin.INPUT_A0, "MyAnalogInput-A0"),
                 gpio.provisionAnalogInputPin(gpioProvider, ADS1015Pin.INPUT_A1, "MyAnalogInput-A1"),
                 gpio.provisionAnalogInputPin(gpioProvider, ADS1015Pin.INPUT_A2, "MyAnalogInput-A2"),
                 gpio.provisionAnalogInputPin(gpioProvider, ADS1015Pin.INPUT_A3, "MyAnalogInput-A3"),
             };
-        
+        */
         // ATTENTION !!          
         // It is important to set the PGA (Programmable Gain Amplifier) for all analog input pins. 
         // (You can optionally set each input to a different value)    
@@ -96,22 +103,22 @@ public class SumoBot {
         //
         // PGA value PGA_4_096V is a 1:1 scaled input, 
         // so the output values are in direct proportion to the detected voltage on the input pins
-        gpioProvider.setProgrammableGainAmplifier(ADS1x15GpioProvider.ProgrammableGainAmplifierValue.PGA_4_096V, ADS1015Pin.ALL);
+        //gpioProvider.setProgrammableGainAmplifier(ADS1x15GpioProvider.ProgrammableGainAmplifierValue.PGA_4_096V, ADS1015Pin.ALL);
                 
         
         // Define a threshold value for each pin for analog value change events to be raised.
         // It is important to set this threshold high enough so that you don't overwhelm your program with change events for insignificant changes
-        gpioProvider.setEventThreshold(500, ADS1015Pin.ALL);
+        //gpioProvider.setEventThreshold(500, ADS1015Pin.ALL);
 
         
         // Define the monitoring thread refresh interval (in milliseconds).
         // This governs the rate at which the monitoring thread will read input values from the ADC chip
         // (a value less than 50 ms is not permitted)
-        gpioProvider.setMonitorInterval(100);
+        //gpioProvider.setMonitorInterval(100);
         
         
         // create analog pin value change listener
-        GpioPinListenerAnalog listener = new GpioPinListenerAnalog()
+        /*GpioPinListenerAnalog listener = new GpioPinListenerAnalog()
         {
             @Override
             public void handleGpioPinAnalogValueChangeEvent(GpioPinAnalogValueChangeEvent event)
@@ -135,11 +142,24 @@ public class SumoBot {
         myInputs[2].addListener(listener);
         myInputs[3].addListener(listener);
        
-        
+        */
        while(true){
            
        }
  
        // gpio.shutdown();
     }
+    
+    /*
+    **  Method that is call when ever an event occurs from a
+    **  "Observable" class. 
+    **  - Will have to set up variable to track the state of the sensors?
+    **  - Consider (ehh) with a polling implmentation to get sensor data
+    */
+    @Override
+    public void update(Observable o, Object arg){
+        digitalSensor dS = (digitalSensor) o;
+        System.out.println(dS.getName());
+    }
+ 
 }
