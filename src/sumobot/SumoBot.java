@@ -23,23 +23,23 @@ import java.util.Observer;
  *
  * @author Dominick Sparks
  */
-public class SumoBot implements Observer{
+public class SumoBot implements Observer {
 
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException, IOException {
-        
+
         final GpioController gpio = GpioFactory.getInstance();
-    
+
         // Motor Controller
-       /* Pin input1 = RaspiPin.GPIO_00;
+        Pin input1 = RaspiPin.GPIO_00;
         Pin input2 = RaspiPin.GPIO_01;
         Pin input3 = RaspiPin.GPIO_02;
         Pin input4 = RaspiPin.GPIO_03;
         MotorController motor = new MotorController(gpio, input1, input2, input3, input4);
-        motor.foward();
+        /*motor.foward();
         Thread.sleep(3000);
         motor.stop();
         Thread.sleep(500);
@@ -51,31 +51,81 @@ public class SumoBot implements Observer{
         Thread.sleep(3000);
         motor.stop();
         */
-        
-        
         // Hardware thread testing... (not possible)
         /*
-        Pin sensor1Pin = RaspiPin.GPIO_01; 
-        Pin sensor2Pin = RaspiPin.GPIO_04;
+         Pin sensor1Pin = RaspiPin.GPIO_01; 
+         Pin sensor2Pin = RaspiPin.GPIO_04;
         
-        LineSensor sensor1 = new LineSensor("test",sensor1Pin,gpio);
-        LineSensor sensor2 = new LineSensor("test",sensor2Pin,gpio);
-        */
-        
+         LineSensor sensor1 = new LineSensor("test",sensor1Pin,gpio);
+         LineSensor sensor2 = new LineSensor("test",sensor2Pin,gpio);
+         */
         //sensor1.run();
         //sensor2.run();
-       
         /* Testing the short range digital sensor 
-        **
-        */
+         **
+         */
+        Pin lineFollower1 = RaspiPin.GPIO_28;
+        Pin lineFollower2 = RaspiPin.GPIO_27;
+        Pin lineFollower3 = RaspiPin.GPIO_26;
+        Pin lineFollower4 = RaspiPin.GPIO_25;
+        Pin longRangeSensor = RaspiPin.GPIO_24;
         Pin shortRangeSensor = RaspiPin.GPIO_29;
-        digitalSensor shortSensor = new digitalSensor("shortRange","sensor1",shortRangeSensor,gpio);
+
+        //Check first line following sensor
+        GpioPinDigitalInput line1 = gpio.provisionDigitalInputPin(lineFollower1);
+        line1.addListener(new GpioPinListenerDigital(){
+           @Override
+           public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
+                if(event.getState() == PinState.LOW){
+        //Check second linefollowing sensor            
+                    GpioPinDigitalInput line2 = gpio.provisionDigitalInputPin(lineFollower2);
+                    line2.addListener(new GpioPinListenerDigital(){
+                     @Override
+                        public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {                   
+                            if(event.getState() == PinState.LOW){ 
+                                motor.foward();
+                            }
+                            if(event.getState() == PinState.HIGH){
+                                motor.left();    
+                            }
+                        }
+                    });
+                }                
+                if(event.getState() == PinState.HIGH){
+                
+                    GpioPinDigitalInput line2 = gpio.provisionDigitalInputPin(lineFollower2);
+                    line2.addListener(new GpioPinListenerDigital(){
+                    @Override
+                        public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {                   
+                            if(event.getState() == PinState.LOW){ 
+                                motor.reverse();
+                            }
+                            if(event.getState() == PinState.HIGH){
+                                motor.right();    
+                            }
+                        }
+                    });
+                }
+            }
+        });
+      /*  GpioPinDigitalInput shortRange = gpio.provisionDigitalInputPin(shortRangeSensor);
+        shortRange.addListener(new GpioPinListenerDigital(){
+                @Override
+                public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
+                    if(event.getState() == PinState.LOW){
+                                
+                    }
+                }
+            });
+       */ 
         
-        Pin shortRangeSensor2 = RaspiPin.GPIO_28;
-        digitalSensor shortSensor2 = new digitalSensor("shortRange","sensor2",shortRangeSensor2,gpio);
+        //digitalSensor shortSensor = new digitalSensor("shortRange","sensor1",shortRangeSensor,gpio);
         
-        shortSensor.addObserver(new SumoBot());
-        shortSensor2.addObserver(new SumoBot());
+       // Pin shortRangeSensor2 = RaspiPin.GPIO_28;
+        //digitalSensor shortSensor2 = new digitalSensor("shortRange","sensor2",shortRangeSensor2,gpio);
+        
+        //shortSensor.addObserver(new SumoBot());
+        //shortSensor2.addObserver(new SumoBot());
         // Tesinting the A to D converter with the long range sensor
         //final DecimalFormat df = new DecimalFormat("#.##");
         //final DecimalFormat pdf = new DecimalFormat("###.#");
@@ -157,9 +207,10 @@ public class SumoBot implements Observer{
     **  - Consider (ehh) with a polling implmentation to get sensor data
     */
     @Override
-    public void update(Observable o, Object arg){
+
+    public void update(Observable o, Object arg) {
         digitalSensor dS = (digitalSensor) o;
         System.out.println(dS.getName());
     }
- 
+
 }
