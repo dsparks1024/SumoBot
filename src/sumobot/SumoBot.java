@@ -73,41 +73,26 @@ public class SumoBot implements Observer {
 
         //Check first line following sensor
         GpioPinDigitalInput line1 = gpio.provisionDigitalInputPin(lineFollower1);
-        line1.addListener(new GpioPinListenerDigital(){
-           @Override
-           public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-                if(event.getState() == PinState.LOW){
-        //Check second linefollowing sensor            
-                    GpioPinDigitalInput line2 = gpio.provisionDigitalInputPin(lineFollower2);
-                    line2.addListener(new GpioPinListenerDigital(){
-                     @Override
-                        public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {                   
-                            if(event.getState() == PinState.LOW){ 
-                                motor.foward();
-                            }
-                            if(event.getState() == PinState.HIGH){
-                                motor.left();    
-                            }
-                        }
-                    });
-                }                
-                if(event.getState() == PinState.HIGH){
-                
-                    GpioPinDigitalInput line2 = gpio.provisionDigitalInputPin(lineFollower2);
-                    line2.addListener(new GpioPinListenerDigital(){
-                    @Override
-                        public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {                   
-                            if(event.getState() == PinState.LOW){ 
-                                motor.reverse();
-                            }
-                            if(event.getState() == PinState.HIGH){
-                                motor.right();    
-                            }
-                        }
-                    });
+        GpioPinDigitalInput line2 = gpio.provisionDigitalInputPin(lineFollower2); 
+            
+            if(line1.getState() == PinState.LOW){
+        //Check second linefollowing sensor                          
+                if(line2.getState() == PinState.LOW){ 
+                    motor.foward();
+                }
+                if(line2.getState() == PinState.HIGH){
+                    motor.left();    
+                }
+            }                              
+            if(line1.getState() == PinState.HIGH){                  
+                if(line2.getState() == PinState.LOW){ 
+                    motor.reverse();
+                }
+                if(line2.getState() == PinState.HIGH){
+                    motor.right();    
                 }
             }
-        });
+             
       /*  GpioPinDigitalInput shortRange = gpio.provisionDigitalInputPin(shortRangeSensor);
         shortRange.addListener(new GpioPinListenerDigital(){
                 @Override
