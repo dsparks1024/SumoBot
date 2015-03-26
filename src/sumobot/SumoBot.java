@@ -74,11 +74,18 @@ public class SumoBot implements Observer {
         //Check first line following sensor
         GpioPinDigitalInput line1 = gpio.provisionDigitalInputPin(lineFollower1);
         GpioPinDigitalInput line2 = gpio.provisionDigitalInputPin(lineFollower2); 
+        GpioPinDigitalInput shortRange = gpio.provisionDigitalInputPin(shortRangeSensor);
+        while(true){
             
             if(line1.getState() == PinState.LOW){
         //Check second linefollowing sensor                          
                 if(line2.getState() == PinState.LOW){ 
+                    if(shortRange.getState() == PinState.LOW){
+                        //check long range sensor
+                    }
+                    if(shortRange.getState() == PinState.HIGH){
                     motor.foward();
+                    }
                 }
                 if(line2.getState() == PinState.HIGH){
                     motor.left();    
@@ -178,7 +185,7 @@ public class SumoBot implements Observer {
         myInputs[3].addListener(listener);
        
         */
-       while(true){
+     
            
        }
  
