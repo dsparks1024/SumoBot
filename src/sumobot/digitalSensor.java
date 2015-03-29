@@ -49,7 +49,7 @@ public class digitalSensor extends Observable {
                     if(event.getState() == PinState.LOW){
                         setChanged();
                         notifyObservers();
-                    }
+    }
                 }
             });
         }
