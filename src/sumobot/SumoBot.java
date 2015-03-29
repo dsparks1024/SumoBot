@@ -23,22 +23,24 @@ import java.util.Observer;
  *
  * @author Dominick Sparks
  */
-public class SumoBot implements Observer{
+public class SumoBot implements Observer {
 
     /**
      * @param args the command line arguments
      * @throws java.lang.InterruptedException
      */
     public static void main(String[] args) throws InterruptedException, IOException {
-        
+
         final GpioController gpio = GpioFactory.getInstance();
-    
+        System.out.println("Running");
         // Motor Controller
-       /* Pin input1 = RaspiPin.GPIO_00;
-        Pin input2 = RaspiPin.GPIO_01;
-        Pin input3 = RaspiPin.GPIO_02;
-        Pin input4 = RaspiPin.GPIO_03;
+        Pin input1 = RaspiPin.GPIO_12;
+        Pin input2 = RaspiPin.GPIO_13;
+        Pin input3 = RaspiPin.GPIO_14;
+        Pin input4 = RaspiPin.GPIO_21;
         MotorController motor = new MotorController(gpio, input1, input2, input3, input4);
+        motor.stop();
+        /*
         motor.foward();
         Thread.sleep(3000);
         motor.stop();
@@ -50,56 +52,155 @@ public class SumoBot implements Observer{
         motor.reverse();
         Thread.sleep(3000);
         motor.stop();
+       */ 
+
+        Pin lineFollower1 = RaspiPin.GPIO_26;
+        Pin lineFollower2 = RaspiPin.GPIO_27;
+        Pin lineFollower3 = RaspiPin.GPIO_28;
+        Pin lineFollower4 = RaspiPin.GPIO_25;
+        Pin longRangeSensor = RaspiPin.GPIO_24;
+        Pin shortRangeSensor = RaspiPin.GPIO_29;
+
+        //Check first line following sensor
+        GpioPinDigitalInput line1 = gpio.provisionDigitalInputPin(lineFollower1);
+        GpioPinDigitalInput line2 = gpio.provisionDigitalInputPin(lineFollower2); 
+        GpioPinDigitalInput shortRange = gpio.provisionDigitalInputPin(shortRangeSensor);
+   
+        while(true){
+            
+            System.out.print(line1.getState());
+            System.out.print( " "+ line2.getState());
+            System.out.println();
+            if(line1.getState() == PinState.HIGH){
+            
+        //Check second linefollowing sensor                          
+                if(line2.getState() == PinState.HIGH){ 
+                    if(shortRange.getState() == PinState.LOW){
+                        //check long range sensor
+                    }
+                    //if(shortRange.getState() == PinState.HIGH){
+                    motor.foward();
+                    //}
+                    //motor.foward();
+                }
+                if(line2.getState() == PinState.LOW){
+                    motor.left();    
+                }
+            }                              
+            if(line1.getState() == PinState.LOW){                  
+                if(line2.getState() == PinState.LOW){ 
+                    motor.reverse();
+                }
+                if(line2.getState() == PinState.LOW){
+                    motor.right();    
+                }
+            
+            }
+          
+          
+      /*  GpioPinDigitalInput shortRange = gpio.provisionDigitalInputPin(shortRangeSensor);
+        shortRange.addListener(new GpioPinListenerDigital(){
+                @Override
+                public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
+                    if(event.getState() == PinState.LOW){
+                                
+                    }
+                }
+            });
+       */ 
+        
+        //digitalSensor shortSensor = new digitalSensor("shortRange","sensor1",shortRangeSensor,gpio);
+        
+       // Pin shortRangeSensor2 = RaspiPin.GPIO_28;
+        //digitalSensor shortSensor2 = new digitalSensor("shortRange","sensor2",shortRangeSensor2,gpio);
+        
+        //shortSensor.addObserver(new SumoBot());
+        //shortSensor2.addObserver(new SumoBot());
+        // Tesinting the A to D converter with the long range sensor
+        //final DecimalFormat df = new DecimalFormat("#.##");
+        //final DecimalFormat pdf = new DecimalFormat("###.#");
+        
+        // create gpio controller
+        
+        // create custom ADS1015 GPIO provider
+        //final ADS1015GpioProvider gpioProvider = new ADS1015GpioProvider(I2CBus.BUS_1, ADS1015GpioProvider.ADS1015_ADDRESS_0x48);
+        
+        // provision gpio analog input pins from ADS1015
+        /*GpioPinAnalogInput myInputs[] = {
+                gpio.provisionAnalogInputPin(gpioProvider, ADS1015Pin.INPUT_A0, "MyAnalogInput-A0"),
+                gpio.provisionAnalogInputPin(gpioProvider, ADS1015Pin.INPUT_A1, "MyAnalogInput-A1"),
+                gpio.provisionAnalogInputPin(gpioProvider, ADS1015Pin.INPUT_A2, "MyAnalogInput-A2"),
+                gpio.provisionAnalogInputPin(gpioProvider, ADS1015Pin.INPUT_A3, "MyAnalogInput-A3"),
+            };
         */
+        // ATTENTION !!          
+        // It is important to set the PGA (Programmable Gain Amplifier) for all analog input pins. 
+        // (You can optionally set each input to a different value)    
+        // You measured input voltage should never exceed this value!
+        //
+        // In my testing, I am using a Sharp IR Distance Sensor (GP2Y0A21YK0F) whose voltage never exceeds 3.3 VDC
+        // (http://www.adafruit.com/products/164)
+        //
+        // PGA value PGA_4_096V is a 1:1 scaled input, 
+        // so the output values are in direct proportion to the detected voltage on the input pins
+        //gpioProvider.setProgrammableGainAmplifier(ADS1x15GpioProvider.ProgrammableGainAmplifierValue.PGA_4_096V, ADS1015Pin.ALL);
+                
+        
+        // Define a threshold value for each pin for analog value change events to be raised.
+        // It is important to set this threshold high enough so that you don't overwhelm your program with change events for insignificant changes
+        //gpioProvider.setEventThreshold(500, ADS1015Pin.ALL);
+
+        
+        // Define the monitoring thread refresh interval (in milliseconds).
+        // This governs the rate at which the monitoring thread will read input values from the ADC chip
+        // (a value less than 50 ms is not permitted)
+        //gpioProvider.setMonitorInterval(100);
         
         
-        // Hardware thread testing... (not possible)
-        /*
-        Pin sensor1Pin = RaspiPin.GPIO_01; 
-        Pin sensor2Pin = RaspiPin.GPIO_04;
+        // create analog pin value change listener
+        /*GpioPinListenerAnalog listener = new GpioPinListenerAnalog()
+        {
+            @Override
+            public void handleGpioPinAnalogValueChangeEvent(GpioPinAnalogValueChangeEvent event)
+            {
+                // RAW value
+                double value = event.getValue();
+
+                // percentage
+                double percent =  ((value * 100) / ADS1015GpioProvider.ADS1015_RANGE_MAX_VALUE);
+                
+                // approximate voltage ( *scaled based on PGA setting )
+                double voltage = gpioProvider.getProgrammableGainAmplifier(event.getPin()).getVoltage() * (percent/100);
+
+                // display output
+                System.out.print("\r (" + event.getPin().getName() +") : VOLTS=" + df.format(voltage) + "  | PERCENT=" + pdf.format(percent) + "% | RAW=" + value + "       ");
+            }
+        };
         
-        LineSensor sensor1 = new LineSensor("test",sensor1Pin,gpio);
-        LineSensor sensor2 = new LineSensor("test",sensor2Pin,gpio);
-        */
-        
-        //sensor1.run();
-        //sensor2.run();
+        myInputs[0].addListener(listener);
+        myInputs[1].addListener(listener);
+        myInputs[2].addListener(listener);
+        myInputs[3].addListener(listener);
        
-        /* Testing the short range digital sensor 
-        **
         */
-       /* Pin shortRangeSensor = RaspiPin.GPIO_29;
-        digitalSensor shortSensor = new digitalSensor("shortRange","sensor1",shortRangeSensor,gpio);
-        
-        Pin shortRangeSensor2 = RaspiPin.GPIO_28;
-        digitalSensor shortSensor2 = new digitalSensor("shortRange","sensor2",shortRangeSensor2,gpio);
-        
-        shortSensor.addObserver(new SumoBot());
-        shortSensor2.addObserver(new SumoBot());
-        */
-        LongRangeDistanceSensor longRangeSensor = new LongRangeDistanceSensor(gpio);
-        longRangeSensor.run();
-        longRangeSensor.addObserver(new SumoBot());
-        
-       while(true){
+     
            
        }
  
-       // gpio.shutdown();
+        //gpio.shutdown();
     }
     
     /*
-    **  Method that is called whenever an event occurs from an
+    **  Method that is call when ever an event occurs from a
     **  "Observable" class. 
     **  - Will have to set up variable to track the state of the sensors?
     **  - Consider (ehh) with a polling implmentation to get sensor data
     */
     @Override
-    public void update(Observable o, Object arg){
-        //digitalSensor dS = (digitalSensor) o;
-        //System.out.println(dS.getName());
-        LongRangeDistanceSensor DS = (LongRangeDistanceSensor) o;
-        System.out.println(DS.getDistance());
+
+    public void update(Observable o, Object arg) {
+        digitalSensor dS = (digitalSensor) o;
+        System.out.println(dS.getName());
     }
- 
+
 }
