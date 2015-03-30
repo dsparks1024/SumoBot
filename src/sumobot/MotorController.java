@@ -33,37 +33,33 @@ this.input2 = this.gpio.provisionDigitalOutputPin(in2,PinState.LOW);
 this.input3 = this.gpio.provisionDigitalOutputPin(in3,PinState.LOW);
 this.input4 = this.gpio.provisionDigitalOutputPin(in4,PinState.LOW);
 }
-public void foward() throws InterruptedException{
+public void foward() {
 input1.high();
 input2.low();
 input3.high();
 input4.low();
-Thread.sleep(500);
-stop();
+
 }
-public void reverse() throws InterruptedException{
+public void reverse() {
 input1.low();
 input2.high();
 input3.low();
 input4.high();
-Thread.sleep(500);
-stop();
+
 }
-public void left() throws InterruptedException{
+public void left() {
 input1.low();
 input2.low();
 input3.high();
 input4.low();
-Thread.sleep(500);
-stop();
+
 }
-public void right() throws InterruptedException{
+public void right() {
 input1.high();
 input2.low();
 input3.low();
 input4.low();
-Thread.sleep(500);
-stop();
+
 }
 public void stop() {
 input1.low();

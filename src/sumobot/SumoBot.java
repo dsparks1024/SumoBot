@@ -32,14 +32,16 @@ public class SumoBot implements Observer {
     public static void main(String[] args) throws InterruptedException, IOException {
 
         final GpioController gpio = GpioFactory.getInstance();
-
+        System.out.println("Running");
         // Motor Controller
-        Pin input1 = RaspiPin.GPIO_00;
-        Pin input2 = RaspiPin.GPIO_01;
-        Pin input3 = RaspiPin.GPIO_02;
-        Pin input4 = RaspiPin.GPIO_03;
+        Pin input1 = RaspiPin.GPIO_12;
+        Pin input2 = RaspiPin.GPIO_13;
+        Pin input3 = RaspiPin.GPIO_14;
+        Pin input4 = RaspiPin.GPIO_21;
         MotorController motor = new MotorController(gpio, input1, input2, input3, input4);
-        /*motor.foward();
+        
+        /*
+        motor.foward();
         Thread.sleep(3000);
         motor.stop();
         Thread.sleep(500);
@@ -50,7 +52,7 @@ public class SumoBot implements Observer {
         motor.reverse();
         Thread.sleep(3000);
         motor.stop();
-        */
+       */ 
         // Hardware thread testing... (not possible)
         /*
          Pin sensor1Pin = RaspiPin.GPIO_01; 
@@ -64,9 +66,9 @@ public class SumoBot implements Observer {
         /* Testing the short range digital sensor 
          **
          */
-        Pin lineFollower1 = RaspiPin.GPIO_28;
+        Pin lineFollower1 = RaspiPin.GPIO_26;
         Pin lineFollower2 = RaspiPin.GPIO_27;
-        Pin lineFollower3 = RaspiPin.GPIO_26;
+        Pin lineFollower3 = RaspiPin.GPIO_28;
         Pin lineFollower4 = RaspiPin.GPIO_25;
         Pin longRangeSensor = RaspiPin.GPIO_24;
         Pin shortRangeSensor = RaspiPin.GPIO_29;
@@ -76,16 +78,18 @@ public class SumoBot implements Observer {
         GpioPinDigitalInput line2 = gpio.provisionDigitalInputPin(lineFollower2); 
         GpioPinDigitalInput shortRange = gpio.provisionDigitalInputPin(shortRangeSensor);
         while(true){
-            
+            gpio.shutdown();
+            /*
             if(line1.getState() == PinState.LOW){
         //Check second linefollowing sensor                          
                 if(line2.getState() == PinState.LOW){ 
-                    if(shortRange.getState() == PinState.LOW){
+                    //if(shortRange.getState() == PinState.LOW){
                         //check long range sensor
-                    }
-                    if(shortRange.getState() == PinState.HIGH){
+                    //}
+                    //if(shortRange.getState() == PinState.HIGH){
+                    //motor.foward();
+                    //}
                     motor.foward();
-                    }
                 }
                 if(line2.getState() == PinState.HIGH){
                     motor.left();    
@@ -98,8 +102,10 @@ public class SumoBot implements Observer {
                 if(line2.getState() == PinState.HIGH){
                     motor.right();    
                 }
+            
             }
-             
+          */
+          
       /*  GpioPinDigitalInput shortRange = gpio.provisionDigitalInputPin(shortRangeSensor);
         shortRange.addListener(new GpioPinListenerDigital(){
                 @Override
@@ -189,7 +195,7 @@ public class SumoBot implements Observer {
            
        }
  
-       // gpio.shutdown();
+        //gpio.shutdown();
     }
     
     /*
