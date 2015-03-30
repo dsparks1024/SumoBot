@@ -15,48 +15,34 @@ import java.util.Observable;
  *
  * @author Dominick Sparks
  */
-public class digitalSensor extends Observable {
+public class digitalSensor {
     
     GpioController gpio;
     GpioPinDigitalInput input;
     String name;
-    String sensorType;
+    int sensorType;
     
     /**
-     * @param sensorType -> "shortRange" || "lineFollower"
+     * @param sensorType -> "0 = shortRange" || "1 = lineFollower"
+     * @param name
      * @param pinNumber
      * @param controller 
      */
-    public digitalSensor(String sensorType, String name, Pin pinNumber, GpioController controller){
+    public digitalSensor(int sensorType, String name, Pin pinNumber, GpioController controller){
         this.gpio = controller;
         this.input = gpio.provisionDigitalInputPin(pinNumber);
         this.name = name;
         this.sensorType = sensorType;     
-        
-        /* This is fired every time the state changes on the given pin
-        **  (might be benefitial to only trigger on a HIGH or LOW which ever
-        **   is preferred)
-        **  ** LOW when a object is detected within < 10cm
-        **  ** HIGH when nothing is detected 
-        **
-        **  ! The main method will be notifed when the the given objcect's
-        **    pin goes low.
-        */  
-        if(sensorType.equals("shortRange")){
-            input.addListener(new GpioPinListenerDigital(){
-                @Override
-                public void handleGpioPinDigitalStateChangeEvent(GpioPinDigitalStateChangeEvent event) {
-                    if(event.getState() == PinState.LOW){
-                        setChanged();
-                        notifyObservers();
-    }
-                }
-            });
-        }
     }
     
     public String getName(){
         return this.name;
+    }
+    public int getType(){
+        return this.sensorType;
+    }
+    public PinState getState(){
+        return this.input.getState();
     }
 }
 
