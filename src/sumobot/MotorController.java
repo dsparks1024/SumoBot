@@ -26,45 +26,64 @@ final GpioPinDigitalOutput input4;
 * @param in3 -> Right Motor Forward
 * @param in4 -> Right Motor Reverse
 */
-public MotorController(GpioController gpio,Pin in1,Pin in2,Pin in3,Pin in4){
-this.gpio = gpio;
-this.input1 = this.gpio.provisionDigitalOutputPin(in1,PinState.LOW);
-this.input2 = this.gpio.provisionDigitalOutputPin(in2,PinState.LOW);
-this.input3 = this.gpio.provisionDigitalOutputPin(in3,PinState.LOW);
-this.input4 = this.gpio.provisionDigitalOutputPin(in4,PinState.LOW);
-}
-public void foward() {
-input1.high();
-input2.low();
-input3.high();
-input4.low();
-
-}
-public void reverse() {
-input1.low();
-input2.high();
-input3.low();
-input4.high();
-
-}
-public void left() {
-input1.low();
-input2.low();
-input3.high();
-input4.low();
-
-}
-public void right() {
-input1.high();
-input2.low();
-input3.low();
-input4.low();
-
-}
-public void stop() {
-input1.low();
-input2.low();
-input3.low();
-input4.low();
-}
+    public MotorController(GpioController gpio,Pin in1,Pin in2,Pin in3,Pin in4){
+        this.gpio = gpio;
+        this.input1 = this.gpio.provisionDigitalOutputPin(in1,PinState.LOW);
+        this.input2 = this.gpio.provisionDigitalOutputPin(in2,PinState.LOW);
+        this.input3 = this.gpio.provisionDigitalOutputPin(in3,PinState.LOW);
+        this.input4 = this.gpio.provisionDigitalOutputPin(in4,PinState.LOW);
+    }
+    public void foward(){
+        input1.high();
+        input2.low();
+        input3.high();
+        input4.low();
+    }
+    public void reverse(){
+        input1.low();
+        input2.high();
+        input3.low();
+        input4.high();
+    }
+    public void left(){
+        input1.low();
+        input2.low();
+        input3.high();
+        input4.low();
+    }
+    public void left(int time) throws InterruptedException{
+        input1.low();
+        input2.high();
+        input3.high();
+        input4.low();
+        Thread.sleep(time);
+    }
+    public void right(){
+        input1.high();
+        input2.low();
+        input3.low();
+        input4.low();
+    }
+    public void right(int time) throws InterruptedException{
+        input1.high();
+        input2.low();
+        input3.low();
+        input4.high();
+        Thread.sleep(time);
+    }
+    
+    public void turnAround() throws InterruptedException{
+        input1.high();
+        input2.low();
+        input3.low();
+        input4.high();
+        Thread.sleep(890);
+    }
+    
+    public void stop() {
+        input1.low();
+        input2.low();
+        input3.low();
+        input4.low();
+    }
 }

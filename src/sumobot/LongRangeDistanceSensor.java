@@ -1,32 +1,13 @@
 package sumobot;
 
-/*
- * #%L
- * **********************************************************************
- * ORGANIZATION  :  Pi4J
- * PROJECT       :  Pi4J :: Java Examples
- * FILENAME      :  ADS1015DistanceSensorExample.java  
- * 
- * This file is part of the Pi4J project. More information about 
- * this project can be found here:  http://www.pi4j.com/
- * **********************************************************************
- * %%
- * Copyright (C) 2012 - 2015 Pi4J
- * %%
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- * 
- *      http://www.apache.org/licenses/LICENSE-2.0
- * 
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- * #L%
- */
-
+/* This class creates an object to interface with the ADS1015 AtoD converter.
+*  The device commuinicates via the I2C bus using the address of 0x48
+*
+*  To set the device's address to 0x48, connect the ADDR pin to ground. 
+*
+*  !! In this implmenentation, the main method is alerted when a new value/distance
+*      recorded. 
+*/
 
 import java.io.IOException;
 import java.text.DecimalFormat;
@@ -38,31 +19,28 @@ import com.pi4j.gpio.extension.ads.ADS1015GpioProvider;
 import com.pi4j.gpio.extension.ads.ADS1015Pin;
 import com.pi4j.gpio.extension.ads.ADS1x15GpioProvider.ProgrammableGainAmplifierValue;
 import com.pi4j.io.gpio.GpioController;
-import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.GpioPinAnalogInput;
 import com.pi4j.io.i2c.I2CBus;
+import java.util.Observable;
 
-/**
- * <p>
- * This example code demonstrates how to use the ADS1015 Pi4J GPIO interface
- * for analog input pins.
- * </p>  
- * 
- * @author Robert Savage
- */
-public class distanceSensor {
+
+public class LongRangeDistanceSensor extends Observable implements Runnable{
     
+    GpioController gpio;
+    double distance;
+    double rawValue;
+    double value;
+    DistanceSensorComponent distanceSensor;
     
-    public static void main(String args[]) throws InterruptedException, IOException {
+    public LongRangeDistanceSensor(GpioController GPIO) throws InterruptedException, IOException {
         
-        System.out.println("<--Pi4J--> ADS1015 Distance Sensor Example ... started.");
-
+        this.gpio = GPIO;
+        
         // number formatters
         final DecimalFormat df = new DecimalFormat("#.##");
         final DecimalFormat pdf = new DecimalFormat("###.#");
         
         // create gpio controller
-        final GpioController gpio = GpioFactory.getInstance();
         
         // create custom ADS1015 GPIO provider
         final ADS1015GpioProvider gpioProvider = new ADS1015GpioProvider(I2CBus.BUS_1, ADS1015GpioProvider.ADS1015_ADDRESS_0x48);
@@ -91,10 +69,10 @@ public class distanceSensor {
         // Define the monitoring thread refresh interval (in milliseconds).
         // This governs the rate at which the monitoring thread will read input values from the ADC chip
         // (a value less than 50 ms is not permitted)
-        gpioProvider.setMonitorInterval(100);
+        gpioProvider.setMonitorInterval(51);
         
         // create a distance sensor based on an analog input pin
-        DistanceSensorComponent distanceSensor = new DistanceSensorComponent(distanceSensorPin);
+        this.distanceSensor = new DistanceSensorComponent(distanceSensorPin);
         
         // build a distance coordinates mapping (estimated distance at raw values)
         distanceSensor.addCalibrationCoordinate(21600, 13);
@@ -111,12 +89,16 @@ public class distanceSensor {
         distanceSensor.addCalibrationCoordinate(8200,  60); 
         distanceSensor.addCalibrationCoordinate(6200,  70); 
         distanceSensor.addCalibrationCoordinate(4200,  80); 
-
         distanceSensor.addListener(new DistanceSensorListener()
         {
             @Override
             public void onDistanceChange(DistanceSensorChangeEvent event)
             {
+                distance = event.getDistance();
+                rawValue = event.getRawValue();
+                //setChanged();
+                //notifyObservers();
+                
                 // RAW value
                 double value = event.getRawValue();
 
@@ -130,19 +112,27 @@ public class distanceSensor {
                 double voltage = gpioProvider.getProgrammableGainAmplifier(distanceSensorPin).getVoltage() * (percent/100);
 
                 // display output
-                System.out.print("\r DISTANCE=" + df.format(distance) + "cm : VOLTS=" + df.format(voltage) + "  | PERCENT=" + pdf.format(percent) + "% | RAW=" + value + "       ");
+                //System.out.print("\r DISTANCE=" + df.format(distance) + "cm : VOLTS=" + df.format(voltage) + "  | PERCENT=" + pdf.format(percent) + "% | RAW=" + value + "       ");
+                
             }
+                       
         });
-        
-        // keep program running for 10 minutes 
-        for (int count = 0; count < 600; count++) {
-            Thread.sleep(1000);
+   
+    }
+    
+    public double getDistance(){
+        return this.distance;
+    }
+    
+    public double getRawValue(){
+        return this.rawValue;
+    }
+
+    @Override
+    public void run() {
+        while(true){
+            System.out.println(this.distanceSensor.getDistance());
         }
-        
-        // stop all GPIO activity/threads by shutting down the GPIO controller
-        // (this method will forcefully shutdown all GPIO monitoring threads and scheduled tasks)
-        gpio.shutdown();
-        System.out.print("");
     }
 }
 
