@@ -116,7 +116,7 @@ public class SumoBot {
             switch(lineSensorFlags){
                 case 0b1111: // all sensors see black
                     //look for oponent...
-                    //System.out.println(longRange.getValue());
+                    System.out.println(longRange.getValue());
                     searchForEnemy();
                     break;
                 case 0b0111: // front left sensor sees white
