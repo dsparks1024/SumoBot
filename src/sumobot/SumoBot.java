@@ -280,7 +280,6 @@ public class SumoBot {
     ** [0b0000] -> both sensors DO NOT see object
     */
     public static void setShortSensorFlags(){
-        System.out.println(leftShortRange.getState() + " " + rightShortRange.getState());
         if(leftShortRange.getState() == PinState.LOW){
             shortSensorFlags = (byte) (shortSensorFlags | 0b0001); 
         }else{
