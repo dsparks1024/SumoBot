@@ -1,13 +1,25 @@
 
 package sumobot;
 
+import com.pi4j.component.sensor.DistanceSensorChangeEvent;
+import com.pi4j.component.sensor.DistanceSensorListener;
+import com.pi4j.component.sensor.impl.DistanceSensorComponent;
+import com.pi4j.gpio.extension.ads.ADS1015GpioProvider;
+import com.pi4j.gpio.extension.ads.ADS1015Pin;
+import com.pi4j.gpio.extension.ads.ADS1x15GpioProvider;
 import com.pi4j.io.gpio.*;
+import com.pi4j.io.i2c.I2CBus;
 import java.io.IOException;
+import java.text.DecimalFormat;
+import java.util.Random;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author Dominick Sparks
  */
+
 public class SumoBot {
 
     /**
@@ -20,17 +32,17 @@ public class SumoBot {
      */
     static GpioController gpio;
     // Define motor controller pins   
-    static Pin input1 = RaspiPin.GPIO_12;
-    static Pin input2 = RaspiPin.GPIO_13;
-    static Pin input3 = RaspiPin.GPIO_14;
-    static Pin input4 = RaspiPin.GPIO_21;
+    static Pin input1 = RaspiPin.GPIO_00;
+    static Pin input2 = RaspiPin.GPIO_02;
+    static Pin input3 = RaspiPin.GPIO_03; 
+    static Pin input4 = RaspiPin.GPIO_12;
     static MotorController motor;
     
     // Define line sensor pins
     static Pin frontLeftLinePin = RaspiPin.GPIO_27;
-    static Pin frontRightLinePin = RaspiPin.GPIO_26;
-    static Pin rearLeftLinePin = RaspiPin.GPIO_28;
-    static Pin rearRightLinePin = RaspiPin.GPIO_25;
+    static Pin frontRightLinePin = RaspiPin.GPIO_24;
+    static Pin rearLeftLinePin = RaspiPin.GPIO_25;
+    static Pin rearRightLinePin = RaspiPin.GPIO_28;
     // Define line sensor objects
     static digitalSensor frontLeftLine;
     static digitalSensor frontRightLine;
@@ -38,25 +50,40 @@ public class SumoBot {
     static digitalSensor rearRightLine;
     
      // Define short range pins
-    static Pin leftShortRangePin = RaspiPin.GPIO_29;
-    static Pin rightShortRangePin = RaspiPin.GPIO_24;
+    static Pin leftShortRangePin = RaspiPin.GPIO_04;
+    static Pin rightShortRangePin = RaspiPin.GPIO_05;
     // Define short range sensor objects
     static digitalSensor leftShortRange;
     static digitalSensor rightShortRange;
     
+    // Define long range sensor object
+    static LongRangeDistanceSensor longRange;
     
     // Global vars to store sensor data 
     static byte lineSensorFlags;
+    static byte shortSensorFlags;
+    static double longRangeValue;
+    static Random rand;
+    static int count;
+    static double[] vals;
     
     public static void main(String[] args) throws InterruptedException, IOException {
         
-        System.out.println("Running");
+        System.out.println("Running...");
         // Initialize variables
-        lineSensorFlags = 0x03;
+        lineSensorFlags = 0x00;
+        shortSensorFlags = 0x00;
+        longRangeValue = 0;
+        rand = new Random();
+        
+        // average long range sensor data
+        count = 0;
+        vals = new double[10];
+        
         gpio = GpioFactory.getInstance();
         
         // Construct motor controller object
-        motor = new MotorController(gpio, input1, input2, input3, input4);
+        motor = new MotorController(gpio, input4, input3, input2, input1);
         motor.stop();
 
         // Construct the line sensor objects
@@ -69,32 +96,42 @@ public class SumoBot {
         leftShortRange = new digitalSensor(1,"leftShortRange",leftShortRangePin,gpio);
         rightShortRange = new digitalSensor(1,"rightShortRange",rightShortRangePin,gpio);
         
-        System.out.println(lineSensorFlags);
-       
-        while(true){
+        // Construct the long range sensor object
+        longRange = new LongRangeDistanceSensor(gpio);
         
+        //System.out.println(lineSensorFlags);
+
+        
+        while(true){
             //System.out.println(frontLeftLine.getState() + " " + frontRightLine.getState());
             setLineSensorFlags();
             
-            System.out.println(lineSensorFlags);
-            System.out.println("Left " + isBlack(frontLeftLine) + " Right " + isBlack(frontRightLine));
-            System.out.println("\n");
+            //System.out.println(lineSensorFlags);
+            //System.out.println("FLeft " + isBlack(frontLeftLine) + " FRight " + isBlack(frontRightLine) + " RRight " + isBlack(rearRightLine) + " RLeft " + isBlack(rearLeftLine));
+           // System.out.println("LeftShort: " + leftShortRange.getState() + " RightShort: " + rightShortRange.getState());
+          //  System.out.println("\n");
            // Thread.sleep(3000);
+           
             
             switch(lineSensorFlags){
                 case 0b1111: // all sensors see black
                     //look for oponent...
-                    motor.foward();
+                    //System.out.println(longRange.getValue());
+                    searchForEnemy();
                     break;
                 case 0b0111: // front left sensor sees white
-                    motor.right(500); //for some time...
+                    motor.right(700); //for some time...
                     break;
                 case 0b1011: // front right sensor sees white
-                    motor.left(500); //for some time...
+                    motor.left(700); //for some time...
                     break;
                 case 0b1101: // rear left sensor sees white
+                    motor.foward();
+                    Thread.sleep(1000);
                     break;
                 case 0b1110: // rear right sensor sees white
+                    motor.foward();
+                    Thread.sleep(1000);
                     break;
                 case 0b0011: // front sensors see white
                     motor.turnAround();
@@ -102,11 +139,97 @@ public class SumoBot {
                 case 0b1100: // rear sensors see white
                     break;
             }
-                
-           
-       }
- 
-        //gpio.shutdown();
+            
+       } 
+        
+    }
+    
+    public static void searchForEnemy() throws InterruptedException{
+        longRangeValue = longRange.getValue();
+        int i = rand.nextInt(1);
+        
+        /* idea of the "count" variable is to have
+        ** the robot turn right x number of times 
+        ** then begin the turn left x number of times
+        ** so that it is not spinning in circles looking
+        ** for the enemy.
+        */
+        vals[count] = longRangeValue;
+        /*
+        if(count == 9){
+            //see if values are within a range
+            //for(int j=0;j<9;j++){
+                //System.out.print("test");
+            //}
+            //System.out.println();
+            count = 0;
+        }else{
+            count ++;
+        }
+       */
+        
+        
+        /*      WORKING CODE... */
+        if(longRangeValue > 400){
+            motor.foward();
+        }else{
+            if(i==1)
+                motor.right(50);
+            else
+                motor.left(50);
+        }
+       
+        
+        /*  MIGHT WORK, SHORTEN THE DELAYS
+        if(longRangeValue > 500){
+            motor.foward();
+        }else{
+            if(count < 5){
+                motor.right(100);
+            }
+            if(count>=10){
+                motor.left(100);
+            }
+            if(count==10){
+                count = 0;
+            }
+            count++;
+        }
+       */
+        
+        
+        /* THIS IS NOT WORKING... Probably due to the fact that
+        ** the flags are being set and reset when the shouldn't be
+        **          Setting the flags when the pin state changes
+        **              should solve this issue.
+        setShortSensorFlags();
+        switch(shortSensorFlags){
+            case 0b0011:
+                motor.foward();
+                //System.out.println("Both See Object");
+                break;
+            case 0b0001:
+                motor.left(5);
+               // System.out.println("Left See Object");
+                break;
+            case 0b0010:
+               // System.out.println("Right See Object");
+                motor.right(5);
+                break;
+            case 0b0000:
+              //  System.out.println("None See Object");
+                if(longRangeValue > 400){
+                    motor.foward();
+                }else{
+                    if(i <1){
+                        motor.left(25);
+                    }else{
+                        motor.right(25);
+                    }
+                }
+                break;
+        }
+        */
     }
     
     public static boolean isBlack(digitalSensor sensor){
@@ -137,7 +260,7 @@ public class SumoBot {
             lineSensorFlags = (byte) (lineSensorFlags ^ 0b0100) ;
         }
         // set rear left sensor if black is detected 
-        /*if(isBlack(rearLeftLine)){
+        if(isBlack(rearLeftLine)){
             lineSensorFlags = (byte) (lineSensorFlags | 0b0010) ;
         }else{
             lineSensorFlags = (byte) (lineSensorFlags ^ 0b0010) ;
@@ -147,6 +270,26 @@ public class SumoBot {
             lineSensorFlags = (byte) (lineSensorFlags | 0b0001) ;
         }else{
             lineSensorFlags = (byte) (lineSensorFlags ^ 0b0001) ;
-        }*/
+        }
+    }
+    
+    /* Updates the global variable that holds the short range sensor's current state
+    ** [0b0001] -> left sensor sees object
+    ** [0b0010] -> right sensor sees object
+    ** [0b0011] -> both sensors see object
+    ** [0b0000] -> both sensors DO NOT see object
+    */
+    public static void setShortSensorFlags(){
+        System.out.println(leftShortRange.getState() + " " + rightShortRange.getState());
+        if(leftShortRange.getState() == PinState.LOW){
+            shortSensorFlags = (byte) (shortSensorFlags | 0b0001); 
+        }else{
+            shortSensorFlags = (byte) (shortSensorFlags ^ 0b0001);
+        }
+        if(rightShortRange.getState() == PinState.HIGH){
+            shortSensorFlags = (byte) (shortSensorFlags | 0b0010);
+        }else{
+            shortSensorFlags = (byte) (shortSensorFlags ^ 0b0010);
+        }
     }
 }
