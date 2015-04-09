@@ -38,18 +38,22 @@ public class SumoBot {
     static Pin input4 = RaspiPin.GPIO_12;
     static MotorController motor;
     
+    // Define program LED indicator
+    static Pin programLed = RaspiPin.GPIO_26;
+    
     // Define line sensor pins
     static Pin frontLeftLinePin = RaspiPin.GPIO_27;
     static Pin frontRightLinePin = RaspiPin.GPIO_24;
     static Pin rearLeftLinePin = RaspiPin.GPIO_25;
     static Pin rearRightLinePin = RaspiPin.GPIO_28;
+    
     // Define line sensor objects
     static digitalSensor frontLeftLine;
     static digitalSensor frontRightLine;
     static digitalSensor rearLeftLine;
     static digitalSensor rearRightLine;
     
-     // Define short range pins
+    // Define short range pins
     static Pin leftShortRangePin = RaspiPin.GPIO_04;
     static Pin rightShortRangePin = RaspiPin.GPIO_05;
     // Define short range sensor objects
@@ -99,8 +103,10 @@ public class SumoBot {
         // Construct the long range sensor object
         longRange = new LongRangeDistanceSensor(gpio);
         
+        // Create gpio output to indicate program is running
+        gpio.provisionDigitalOutputPin(programLed,PinState.HIGH);
         //System.out.println(lineSensorFlags);
-
+        
         
         while(true){
             //System.out.println(frontLeftLine.getState() + " " + frontRightLine.getState());
@@ -111,7 +117,6 @@ public class SumoBot {
            // System.out.println("LeftShort: " + leftShortRange.getState() + " RightShort: " + rightShortRange.getState());
           //  System.out.println("\n");
            // Thread.sleep(3000);
-           
             
             switch(lineSensorFlags){
                 case 0b1111: // all sensors see black
@@ -146,7 +151,7 @@ public class SumoBot {
     
     public static void searchForEnemy() throws InterruptedException{
         longRangeValue = longRange.getValue();
-        int i = rand.nextInt(1);
+        boolean i = rand.nextBoolean();
         
         /* idea of the "count" variable is to have
         ** the robot turn right x number of times 
@@ -154,31 +159,36 @@ public class SumoBot {
         ** so that it is not spinning in circles looking
         ** for the enemy.
         */
-        vals[count] = longRangeValue;
-        /*
-        if(count == 9){
-            //see if values are within a range
-            //for(int j=0;j<9;j++){
-                //System.out.print("test");
-            //}
-            //System.out.println();
-            count = 0;
-        }else{
-            count ++;
-        }
-       */
+       // vals[count] = longRangeValue;
         
         
-        /*      WORKING CODE... */
-        if(longRangeValue > 400){
+        /* WORKING CODE... USE THIS if short range does not work */
+       /* if(longRangeValue>300){
             motor.foward();
         }else{
-            if(i==1)
-                motor.right(50);
-            else
-                motor.left(50);
+            if(count < 50 ){
+                motor.left(30);
+            }else{
+                motor.right(30);
+            }
+            if(count == 99 ){
+                count= -1;
+            }
+            count++;
         }
-       
+        */
+        
+        /*      WORKING CODE... */
+        /*System.out.println(i);
+        if(longRangeValue > 300){
+            motor.foward();
+        }else{
+            if(i)
+                motor.right(10);
+            else
+                motor.left(10);
+        }
+       */
         
         /*  MIGHT WORK, SHORTEN THE DELAYS
         if(longRangeValue > 500){
@@ -230,6 +240,37 @@ public class SumoBot {
                 break;
         }
         */
+        
+        /* WORKING CODE... uses the short range sensor to stay locked on target */
+        // Both short range sensors see an object
+        if( (leftShortRange.getState() == PinState.LOW) && (rightShortRange.getState() == PinState.LOW) ){
+            motor.foward();
+        }
+        // left sensor sees object, right sensor does not
+        if( (leftShortRange.getState() == PinState.LOW) && (rightShortRange.getState() == PinState.HIGH) ){
+            motor.right(5);
+        }
+        // right sensor sees object, left sensor does not
+        if( (leftShortRange.getState() == PinState.HIGH) && (rightShortRange.getState() == PinState.LOW) ){
+            motor.left(5);
+        }
+        // short range sensors do not see objcet, Check long range sensor
+        if( (leftShortRange.getState() == PinState.HIGH) && (rightShortRange.getState() == PinState.HIGH) ){
+            if(longRangeValue>290){
+            motor.foward();
+            }else{
+                if(count < 50 ){
+                    motor.left(30);
+                }else{
+                    motor.left(30);
+                }
+                if(count == 99 ){
+                    count= -1;
+                }
+                count++;
+            }
+        }
+        
     }
     
     public static boolean isBlack(digitalSensor sensor){
