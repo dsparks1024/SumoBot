@@ -256,7 +256,7 @@ public class SumoBot {
         }
         // short range sensors do not see objcet, Check long range sensor
         if( (leftShortRange.getState() == PinState.HIGH) && (rightShortRange.getState() == PinState.HIGH) ){
-            if(longRangeValue>290){
+            if(longRangeValue>250){
             motor.foward();
             }else{
                 if(count < 50 ){
