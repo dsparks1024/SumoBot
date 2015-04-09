@@ -248,11 +248,11 @@ public class SumoBot {
         }
         // left sensor sees object, right sensor does not
         if( (leftShortRange.getState() == PinState.LOW) && (rightShortRange.getState() == PinState.HIGH) ){
-            motor.right(5);
+            motor.right(10);
         }
         // right sensor sees object, left sensor does not
         if( (leftShortRange.getState() == PinState.HIGH) && (rightShortRange.getState() == PinState.LOW) ){
-            motor.left(5);
+            motor.left(10);
         }
         // short range sensors do not see objcet, Check long range sensor
         if( (leftShortRange.getState() == PinState.HIGH) && (rightShortRange.getState() == PinState.HIGH) ){
